@@ -1,0 +1,109 @@
+#import get to call a get request on the site
+# Run the following code to install requests library (https://pypi.org/project/requests/)
+# python -m pip install requests
+from requests import get
+
+#get the first page of seattle cars&trucks
+response = get('https://seattle.craigslist.org/search/cta?auto_title_status=1&hasPic=1#search=1~list~0~0') #clean title, has image 
+
+# Run the following code to install requests library (https://pypi.org/project/beautifulsoup4/#description)
+# python -m pip install bs4
+from bs4 import BeautifulSoup
+
+html_soup = BeautifulSoup(response.text, 'html.parser')
+
+# total_results = html_soup.find('span', 'cl-page-number').text
+# total_pages = (total_results // 120)
+
+#get cars&trucks posts
+posts = html_soup.find_all('li', {"class": "cl-static-search-result"})
+
+# print(type(posts)) #check ResultSet
+car_listings = []
+
+for post in posts:
+    car_info = {}
+    car_info['title'] = post.find('div', class_='title').text
+    car_info['price'] = post.find('div', class_='price').text
+    car_info['details'] = post.find('div', class_='details').text
+    car_info['location'] = post.find('div', class_='location').text
+    # car_info['link'] = post.find('a', tabindex='0').get('href')
+    car_listings.append(car_info)
+    # print(car_listings)
+
+
+def mainSearch(car_listings):
+    print('SEATTLE CRAIGSLIST CARS&AUTO WEBSCRAPER')
+    print('Car Year Brand Model | minimum car price - maximum car price | location\n')
+
+    print('Specify your Car Search. Press Enter key to skip.\n')        # Search Cars and Specify filters 
+    year_brand_model = input('Select the Car Year Brand Model you would like to search for (e.g. 2018 Toyota Camry): ')
+    if year_brand_model == '':
+        year_brand_model = 'any'
+
+    car_price_min = input("Filter by minimum car price: ")
+    if car_price_min == '':
+        car_price_min = 'empty'
+
+    car_price_max = input("Filter by maximum car price: ")
+    if car_price_max == '':
+        car_price_max = 'empty'
+
+    location = input('Filter by location: ')
+    if location == '':
+        location = 'any'
+
+    # Create filters 
+    filters = {
+            'title': year_brand_model,
+            'price': [car_price_min, car_price_max],
+            'location': location
+        }       
+    
+    sorted_cars = []
+
+    for car in car_listings:        # add cars from car_listings into sorted_cars if name is the same, else sorted_cars = car_listings
+        if (filters['title'] != 'any' and filters['title'] in car['title']):
+            sorted_cars.append(car)
+        else:
+            sorted_cars = car_listings
+
+    for car in sorted_cars:
+        if filters['price'][0] > car['price'] and filters['price'][0] != 'empty':
+            sorted_cars.remove(car)
+        if filters['price'][1] > car['price'] and filters['price'][1] != 'empty':
+            sorted_cars.remove(car)
+        if filters['location'] != car['location'] and filters['location'] != 'any':
+            sorted_cars.remove(car)
+            
+            
+
+    print(f'\nCar Year Brand Model: {year_brand_model} | Min Car Price: {car_price_min} - Max Car Price: {car_price_max} | Location: {location}')
+    print(f'Searching {len(sorted_cars)} results...\n') # print number of listings
+    print(sorted_cars)
+    
+
+    nextStep()
+
+
+def nextStep():
+    user_next = input(f'\n\nGo Back to search (back)\nEdit Filter (edit)\nSort Filter by (sort)\n')
+    if user_next == 'back':
+        mainSearch(posts)
+    if user_next == 'edit':
+        edit_filter()
+    if user_next == 'sort':
+        sort_filter()
+    
+def edit_filter():
+    print(f'Select which filter to edit:')
+    
+
+def sort_filter():
+    print(f'Select which filter to sort(ascending or descending)')
+    
+
+mainSearch(car_listings)
+
+# {'title': '2011 Subaru Outback 2.5I PREMIUM AWD 4DR WAGON CVT', 'price': '$7,999', 'details': '\n$7,999\n\n                        snohomish county\n                    \n', 'location': '\n
+#    snohomish county\n                    '}
