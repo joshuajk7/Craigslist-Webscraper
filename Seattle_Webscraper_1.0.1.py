@@ -6,11 +6,6 @@ import zmq
 import pandas as pd
 
 
-# from selenium import webdriver
-# chrome_driver_path = 'C:\chromedriver-win64\chromedriver.exe'
-# driver = webdriver.Chrome(chrome_driver_path)
-
-
 def suggest_filter():
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
@@ -42,7 +37,6 @@ def suggest_filter():
     return filters
 
 
-
 def grabListings():
     total_pages = 1
     base_url = 'https://seattle.craigslist.org/search/cta?auto_title_status=1&hasPic=1#search=1~list~{}'
@@ -72,42 +66,6 @@ def grabListings():
             page_response.close()
 
         return mainSearch(car_listings)
-
-
-# def grabListings():
-#     total_pages = 7
-#     base_url = 'https://seattle.craigslist.org/search/cta?auto_title_status=1&hasPic=1#search=1~list~'
-#
-#     car_listings = []
-#
-#     driver = webdriver.Chrome()
-#
-#     for page in range(total_pages):
-#         url = base_url + str(page)
-#         driver.get(url)
-#
-#         # Let the dynamic content load (you may need to adjust the sleep duration)
-#         time.sleep(2)
-#
-#         html_soup = BeautifulSoup(driver.page_source, 'html.parser')
-#
-#         posts = html_soup.find_all('li', {"class": "cl-search-result cl-search-view-mode-list"})
-#
-#         for post in posts:
-#             car_info = {
-#                 'title': post.find('a', class_='posting-title').span.text.strip(),
-#                 'price': post.find('span', class_='priceinfo').text.strip(),
-#                 'location': post.find('span', class_='meta').find('span', class_='separator').find_next_sibling('span').text.strip()
-#             }
-#             get_link = post.find('a', href=True)
-#             car_info['link'] = get_link['href']
-#
-#             car_listings.append(car_info)
-#
-#     driver.quit()
-#
-#     return mainSearch(car_listings)
-#
 
 
 def mainSearch(car_listings):
@@ -211,7 +169,7 @@ def showResults(filters, final_sort, car_listings):
 def nextStep(car_listings, filters, final_sort):
     while True:
         user_next = input(f'\n\nGo Back to Search (back)\nEdit Filter (edit)\nSort Filter by (sort)\n'
-                          f'Export Listing (export)\nQuit (quit)\n')
+                          f'Export Listing (export)\nHelp (help)\nQuit (quit)\n')
         if user_next == 'back':
             print('\n\n')
             return mainSearch(car_listings)
@@ -221,6 +179,8 @@ def nextStep(car_listings, filters, final_sort):
             return sortPrice(car_listings, filters, final_sort)
         elif user_next == 'export':
             exportListings(final_sort)
+        elif user_next == 'help':
+            explanations()
 
         elif user_next == 'quit':
             while True:
@@ -249,6 +209,7 @@ def sortPrice(car_listings, filters, final_sort):
         else:
             print("There seems to be an error. Please try again.")
 
+
 def exportListings(final_sort):
     """Exports the filtered listings into an .xlsx file. openpyxl mut be installed"""
     export_name = input("Name your export file: ")
@@ -259,8 +220,13 @@ def exportListings(final_sort):
     except PermissionError:
         print(f'Error: File {export_name} already exists.')
 
+
 def explanations():
-    print(f'(back): Takes you back to the starting search CLI.\n(edit): Lets you edit a filter.\n(sort): Sort the listings by either ascending or descending price.\n(export): Export your listings into an .xlsx file (excel)\n(quit): Quit the Program. ')
+    print(
+        f'(back): Takes you back to the starting search CLI.\n(edit): Lets you edit a filter.\n(sort): Sort the '
+        f'listings by either ascending or descending price.\n(export): Export your listings into an .xlsx file ('
+        f'excel)\n(quit): Quit the Program. ')
     return
+
 
 grabListings()
